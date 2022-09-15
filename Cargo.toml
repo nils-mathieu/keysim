@@ -1,0 +1,10 @@
+[package]
+name = "keysim"
+version = "0.0.1"
+edition = "2021"
+authors = ["Nils Mathieu <nils.mathieu.contact@gmail.com>"]
+description = "a crossplatform library to simulate user inputs"
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/nils-mathieu/keysim"
+documentation = "https://docs.rs/keysim"
