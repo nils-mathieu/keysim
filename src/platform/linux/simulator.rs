@@ -1,3 +1,5 @@
+use crate::Key;
+
 /// The simulator on the Linux platform.
 pub enum Simulator {
     #[cfg(feature = "x11")]
@@ -23,5 +25,26 @@ impl Simulator {
         super::x11::Simulator::new()
             .map(Self::X11)
             .map_err(super::Error::X11)
+    }
+
+    /// Simulates a key press event.
+    pub fn press_key(&self, key: Key) -> Result<(), super::Error> {
+        match self {
+            Self::X11(sim) => sim.press_key(key).map_err(super::Error::X11),
+        }
+    }
+
+    /// Simulates a key release event.
+    pub fn release_key(&self, key: Key) -> Result<(), super::Error> {
+        match self {
+            Self::X11(sim) => sim.release_key(key).map_err(super::Error::X11),
+        }
+    }
+
+    /// Simulates a keystroke event.
+    pub fn send_key(&self, key: Key) -> Result<(), super::Error> {
+        match self {
+            Self::X11(sim) => sim.send_key(key).map_err(super::Error::X11),
+        }
     }
 }

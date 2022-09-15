@@ -3,4 +3,6 @@
 pub enum Error {
     /// An error occured when opening an X11 display instance.
     OpenError,
+    /// The X11 server behaved in an unexpected way.
+    UnexpectedError,
 }

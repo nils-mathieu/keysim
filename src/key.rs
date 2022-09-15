@@ -107,24 +107,34 @@ pub enum Key {
     F24,
 
     /// The **0** key, above the letters.
+    #[doc(alias = "0")]
     Zero,
     /// The **1** key, above the letters.
+    #[doc(alias = "1")]
     One,
     /// The **2** key, above the letters.
+    #[doc(alias = "2")]
     Two,
     /// The **3** key, above the letters.
+    #[doc(alias = "3")]
     Three,
     /// The **4** key, above the letters.
+    #[doc(alias = "4")]
     Four,
     /// The **5** key, above the letters.
+    #[doc(alias = "5")]
     Five,
     /// The **6** key, above the letters.
+    #[doc(alias = "6")]
     Six,
     /// The **7** key, above the letters.
+    #[doc(alias = "7")]
     Seven,
     /// The **8** key, above the letters.
+    #[doc(alias = "8")]
     Eight,
     /// The **9** key, above the letters.
+    #[doc(alias = "9")]
     Nine,
 
     /// The **Escape** key.
@@ -255,4 +265,6 @@ pub enum Key {
     MediaPrevious,
     /// The **Media Stop** key.
     MediaStop,
+    /// The **Media Pause** key.
+    MediaPause,
 }
