@@ -8,3 +8,17 @@ readme = "README.md"
 license = "MIT"
 repository = "https://github.com/nils-mathieu/keysim"
 documentation = "https://docs.rs/keysim"
+
+[features]
+default = ["std", "x11"]
+
+# Whether the standard library should be supported.
+std = []
+
+[dependencies.x11]
+# Only on Linux:
+#
+# Enables support for the X11 window manager. 
+version = "2"
+default-features = false
+optional = true
