@@ -1,4 +1,6 @@
-use crate::Key;
+use std::os::raw::{c_int, c_uint};
+
+use crate::{Button, Key};
 
 /// The simulator used when using the X11 window manager.
 pub struct Simulator {
@@ -26,7 +28,7 @@ impl Simulator {
     /// Sends a fake key press event to the top-level window.
     pub fn press_key(&self, key: Key) -> Result<(), super::Error> {
         let code = keysym_to_keycode(self, super::utils::key_to_keysym(key));
-        if fake_key_event(self, code, true) == x11::xlib::False {
+        if fake_key_event(self, code as _, x11::xlib::True) == x11::xlib::False {
             return Err(super::Error::UnexpectedError);
         }
 
@@ -37,7 +39,7 @@ impl Simulator {
     /// Sends a fake key release event to the top-level window.
     pub fn release_key(&self, key: Key) -> Result<(), super::Error> {
         let code = keysym_to_keycode(self, super::utils::key_to_keysym(key));
-        if fake_key_event(self, code, false) == x11::xlib::False {
+        if fake_key_event(self, code as _, x11::xlib::False) == x11::xlib::False {
             return Err(super::Error::UnexpectedError);
         }
 
@@ -49,11 +51,51 @@ impl Simulator {
     pub fn send_key(&self, key: Key) -> Result<(), super::Error> {
         let code = keysym_to_keycode(self, super::utils::key_to_keysym(key));
 
-        if fake_key_event(self, code, true) == x11::xlib::False {
+        if fake_key_event(self, code as _, x11::xlib::True) == x11::xlib::False {
             return Err(super::Error::UnexpectedError);
         }
 
-        if fake_key_event(self, code, false) == x11::xlib::False {
+        if fake_key_event(self, code as _, x11::xlib::False) == x11::xlib::False {
+            return Err(super::Error::UnexpectedError);
+        }
+
+        flush(self);
+        Ok(())
+    }
+
+    /// Sends a fake button press to the top-level window.
+    pub fn press_button(&self, button: Button) -> Result<(), super::Error> {
+        let btn = super::utils::button_to_x11(button);
+
+        if fake_button_event(self, btn, x11::xlib::True) == x11::xlib::False {
+            return Err(super::Error::UnexpectedError);
+        }
+
+        flush(self);
+        Ok(())
+    }
+
+    /// Sends a fake button release to the top-level window.
+    pub fn release_button(&self, button: Button) -> Result<(), super::Error> {
+        let btn = super::utils::button_to_x11(button);
+
+        if fake_button_event(self, btn, x11::xlib::False) == x11::xlib::False {
+            return Err(super::Error::UnexpectedError);
+        }
+
+        flush(self);
+        Ok(())
+    }
+
+    /// Sends a fake button click to the top-level window.
+    pub fn send_button(&self, button: Button) -> Result<(), super::Error> {
+        let btn = super::utils::button_to_x11(button);
+
+        if fake_button_event(self, btn, x11::xlib::True) == x11::xlib::False {
+            return Err(super::Error::UnexpectedError);
+        }
+
+        if fake_button_event(self, btn, x11::xlib::False) == x11::xlib::False {
             return Err(super::Error::UnexpectedError);
         }
 
@@ -85,14 +127,10 @@ fn keysym_to_keycode(sim: &Simulator, keysym: x11::xlib::KeySym) -> x11::xlib::K
 ///
 /// This function is wrapper around the [`x11::xtest::XTestFakeKeyEvent`] function.
 #[inline]
-fn fake_key_event(
-    sim: &Simulator,
-    keycode: x11::xlib::KeyCode,
-    is_press: bool,
-) -> x11::xlib::Status {
+fn fake_key_event(sim: &Simulator, keycode: c_uint, is_press: c_int) -> x11::xlib::Status {
     // Safety:
     //  `Simulator` always holds a valid `Display`.
-    unsafe { x11::xtest::XTestFakeKeyEvent(sim.display, keycode as _, is_press as _, 0) }
+    unsafe { x11::xtest::XTestFakeKeyEvent(sim.display, keycode, is_press, 0) }
 }
 
 /// Flushes the output buffer.
@@ -107,4 +145,14 @@ fn flush(sim: &Simulator) {
     // never talks about potential errors, and some pages even omit that return type in the
     // function's signature.
     unsafe { x11::xlib::XFlush(sim.display) };
+}
+
+/// Simulates a button event.
+///
+/// This function is a wrapper around the [`x11::xtest::XTestFakeButtonEvent`] function.
+#[inline]
+fn fake_button_event(sim: &Simulator, button: c_uint, is_press: c_int) -> x11::xlib::Status {
+    // Safety:
+    //  `Simulator` always holds a valid `Display`.
+    unsafe { x11::xtest::XTestFakeButtonEvent(sim.display, button, is_press, 0) }
 }

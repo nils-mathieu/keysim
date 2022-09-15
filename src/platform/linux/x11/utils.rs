@@ -1,8 +1,10 @@
 //! This module provides some utility functions.
 
+use std::os::raw::c_uint;
+
 use x11::xlib::KeySym;
 
-use crate::Key;
+use crate::{Button, Key};
 
 /// Converts a [`Key`] into a [`KeySym`].
 pub fn key_to_keysym(key: Key) -> KeySym {
@@ -117,5 +119,17 @@ pub fn key_to_keysym(key: Key) -> KeySym {
         Key::MediaPrevious => keysym::XF86XK_AudioPrev as KeySym,
         Key::MediaStop => keysym::XF86XK_AudioStop as KeySym,
         Key::MediaPause => keysym::XF86XK_AudioPause as KeySym,
+    }
+}
+
+/// Converts a [`Button`] instance into a [`c_uint`] understood by X11.
+pub fn button_to_x11(button: Button) -> c_uint {
+    match button {
+        Button::Left => 1,
+        Button::Middle => 2,
+        Button::Right => 3,
+        Button::Extra(0) => 8,
+        Button::Extra(1) => 9,
+        Button::Extra(_) => 0,
     }
 }

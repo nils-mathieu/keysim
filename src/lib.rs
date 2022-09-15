@@ -1,7 +1,5 @@
 //! The `keysim` library can be used to simulate user inputs.
 
-#![cfg_attr(not(feature = "std"), no_std)]
-
 #[cfg_attr(target_os = "linux", path = "platform/linux/mod.rs")]
 mod platform;
 

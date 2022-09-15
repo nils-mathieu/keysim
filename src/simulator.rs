@@ -1,4 +1,4 @@
-use crate::Key;
+use crate::{Button, Key};
 
 /// Stores the state required to simulate inputs.
 ///
@@ -32,5 +32,23 @@ impl Simulator {
     #[inline]
     pub fn send_key(&self, key: Key) -> Result<(), super::Error> {
         self.0.send_key(key).map_err(crate::Error)
+    }
+
+    /// Sends a fake button press event to the top-level window.
+    #[inline]
+    pub fn press_button(&self, button: Button) -> Result<(), super::Error> {
+        self.0.press_button(button).map_err(crate::Error)
+    }
+
+    /// Sends a fake button release event to the top-level window.
+    #[inline]
+    pub fn release_button(&self, button: Button) -> Result<(), super::Error> {
+        self.0.release_button(button).map_err(crate::Error)
+    }
+
+    /// Sends a fake button click event to the top-level window.
+    #[inline]
+    pub fn send_button(&self, button: Button) -> Result<(), super::Error> {
+        self.0.send_button(button).map_err(crate::Error)
     }
 }

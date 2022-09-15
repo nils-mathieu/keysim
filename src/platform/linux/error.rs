@@ -1,5 +1,5 @@
-use core::fmt;
-use core::fmt::Debug;
+use std::fmt;
+use std::fmt::Debug;
 
 /// An error that may occur when simulating user inputs on the Linux operating system.
 pub enum Error {

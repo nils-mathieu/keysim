@@ -1,5 +1,5 @@
-use core::fmt;
-use core::fmt::Debug;
+use std::fmt;
+use std::fmt::Debug;
 
 /// An error that might occur when interacting when simulating user inputs.
 pub struct Error(pub(crate) crate::platform::Error);
