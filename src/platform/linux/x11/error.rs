@@ -5,4 +5,6 @@ pub enum Error {
     OpenError,
     /// The X11 server behaved in an unexpected way.
     UnexpectedError,
+    /// The key is not supported.
+    UnsupportedKey,
 }

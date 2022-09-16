@@ -74,10 +74,16 @@ impl OpenDisplay {
 
     /// Wraps the [`xlib::XKeysymToKeycode`] function.
     #[inline]
-    pub fn keysym_to_keycode(&self, keysym: xlib::KeySym) -> xlib::KeyCode {
+    pub fn keysym_to_keycode(&self, keysym: xlib::KeySym) -> Result<xlib::KeyCode, super::Error> {
         // Safety:
         //  The `raw` field of `Display` is known to be valid, by invariant.
-        unsafe { xlib::XKeysymToKeycode(self.raw, keysym) }
+        let keycode = unsafe { xlib::XKeysymToKeycode(self.raw, keysym) };
+
+        if keycode == 0 {
+            Err(super::Error::UnsupportedKey)
+        } else {
+            Ok(keycode)
+        }
     }
 
     /// Wraps the [`xlib::XFlush`] function.
