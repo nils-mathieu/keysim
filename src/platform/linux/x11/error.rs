@@ -5,9 +5,9 @@ use std::fmt::Display;
 #[derive(Debug)]
 pub enum Error {
     /// An error occured when opening an X11 display instance.
-    OpenError,
+    OpenDisplay,
     /// The X11 server behaved in an unexpected way.
-    UnexpectedError,
+    Unexpected,
     /// The key is not supported.
     UnsupportedKey,
 }
@@ -15,8 +15,8 @@ pub enum Error {
 impl Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::OpenError => f.write_str("failed to open a connection with the X server"),
-            Self::UnexpectedError => f.write_str("the X server behaved in an unexpected way"),
+            Self::OpenDisplay => f.write_str("failed to open a connection with the X server"),
+            Self::Unexpected => f.write_str("the X server behaved in an unexpected way"),
             Self::UnsupportedKey => f.write_str("the X server does not support the requested key"),
         }
     }

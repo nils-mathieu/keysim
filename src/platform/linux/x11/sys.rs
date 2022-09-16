@@ -19,7 +19,7 @@ impl OpenDisplay {
         let raw = unsafe { xlib::XOpenDisplay(std::ptr::null()) };
 
         if raw.is_null() {
-            return Err(super::Error::OpenError);
+            return Err(super::Error::OpenDisplay);
         }
 
         Ok(Self { raw })
@@ -66,7 +66,7 @@ impl OpenDisplay {
         let status = unsafe { xlib::XGetInputFocus(self.raw(), &mut window, &mut revert_to) };
 
         if status == xlib::False {
-            Err(super::Error::UnexpectedError)
+            Err(super::Error::Unexpected)
         } else {
             Ok(window)
         }
@@ -98,7 +98,7 @@ impl OpenDisplay {
         let status = unsafe { xlib::XFlush(self.raw) };
 
         if status == xlib::False {
-            Err(super::Error::UnexpectedError)
+            Err(super::Error::Unexpected)
         } else {
             Ok(())
         }
@@ -107,11 +107,11 @@ impl OpenDisplay {
     /// Sends a [`xlib::XKeyEvent`].
     ///
     /// This function assumes that `window` is a valid window ID, meaning that it returns
-    /// [`UnexpectedError`] if the operation fails.
+    /// [`Unexpected`] if the operation fails.
     ///
     /// This function wraps the [`xlib::XSendEvent`] function.
     ///
-    /// [`UnexpectedError`]: super::Error::UnexpectedError
+    /// [`Unexpected`]: super::Error::Unexpected
     pub fn send_key_event(
         &self,
         window: xlib::Window,
@@ -147,7 +147,7 @@ impl OpenDisplay {
         let status = unsafe { xlib::XSendEvent(self.raw, window, xlib::True, mask, &mut event) };
 
         if status == xlib::False {
-            Err(super::Error::UnexpectedError)
+            Err(super::Error::Unexpected)
         } else {
             Ok(())
         }
@@ -156,11 +156,11 @@ impl OpenDisplay {
     /// Sends a [`xlib::XButtonEvent`].
     ///
     /// This function assumes that `window` is a valid window ID, meaning that it returns
-    /// [`UnexpectedError`] if the operation fails.
+    /// [`Unexpected`] if the operation fails.
     ///
     /// This function wraps the [`xlib::XSendEvent`] function.
     ///
-    /// [`UnexpectedError`]: super::Error::UnexpectedError
+    /// [`Unexpected`]: super::Error::Unexpected
     pub fn send_button_event(
         &self,
         window: xlib::Window,
@@ -197,7 +197,7 @@ impl OpenDisplay {
         let status = unsafe { xlib::XSendEvent(self.raw, window, xlib::True, mask, &mut event) };
 
         if status == xlib::False {
-            Err(super::Error::UnexpectedError)
+            Err(super::Error::Unexpected)
         } else {
             Ok(())
         }
@@ -214,7 +214,7 @@ impl OpenDisplay {
         let status = unsafe { xtest::XTestFakeKeyEvent(self.raw, keycode, press as _, delay) };
 
         if status == xlib::False {
-            Err(super::Error::UnexpectedError)
+            Err(super::Error::Unexpected)
         } else {
             Ok(())
         }
@@ -231,7 +231,7 @@ impl OpenDisplay {
         let status = unsafe { xtest::XTestFakeButtonEvent(self.raw, button, press as _, delay) };
 
         if status == xlib::False {
-            Err(super::Error::UnexpectedError)
+            Err(super::Error::Unexpected)
         } else {
             Ok(())
         }

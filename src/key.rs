@@ -1,5 +1,3 @@
-use bitflags::bitflags;
-
 /// Keyboard keys.
 ///
 /// This enumeration can be used when simulating a specific virtual-key code (or symbol), rather
@@ -269,14 +267,4 @@ pub enum Key {
     MediaStop,
     /// The **Media Pause** key.
     MediaPause,
-}
-
-bitflags! {
-    /// A collection of modifiers that may be added to a key.
-    pub struct Modifiers: u8 {
-        /// Whether the **SHIFT** modifier should be enabled for the keystroke.
-        const SHIFT = 1 << 0;
-        /// Whether the **CONTROL** modifier should be enabled for the keystroke.
-        const CONTROL = 1 << 0;
-    }
 }
