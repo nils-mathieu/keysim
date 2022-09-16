@@ -12,6 +12,9 @@ documentation = "https://docs.rs/keysim"
 [features]
 default = ["x11"]
 
+[dependencies]
+bitflags = "1"
+
 [dependencies.x11]
 # Only on Linux:
 #

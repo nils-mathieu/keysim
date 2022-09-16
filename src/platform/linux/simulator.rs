@@ -76,4 +76,28 @@ impl Simulator {
             Self::X11(sim) => sim.send_button(button).map_err(super::Error::X11),
         }
     }
+
+    /// Simulates a character being typed.
+    pub fn send_char(&self, c: char) -> Result<(), super::Error> {
+        match self {
+            #[cfg(feature = "x11")]
+            Self::X11(sim) => sim.send_char(c).map_err(super::Error::X11),
+        }
+    }
+
+    /// Simulates characters being typed.
+    pub fn send_chars(&self, it: impl Iterator<Item = char>) -> Result<(), super::Error> {
+        match self {
+            #[cfg(feature = "x11")]
+            Self::X11(sim) => sim.send_chars(it).map_err(super::Error::X11),
+        }
+    }
+
+    /// Simulates characters being typed.
+    pub fn send_str(&self, s: &str) -> Result<(), super::Error> {
+        match self {
+            #[cfg(feature = "x11")]
+            Self::X11(sim) => sim.send_str(s).map_err(super::Error::X11),
+        }
+    }
 }

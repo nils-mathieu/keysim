@@ -1,3 +1,5 @@
+use x11::{keysym, xlib};
+
 use super::sys::OpenDisplay;
 use super::utils;
 use crate::{Button, Key};
@@ -34,7 +36,7 @@ impl Simulator {
             self.display.xtest_fake_key_event(keycode as _, true, 0)?;
         } else {
             let window = self.display.get_input_focus()?;
-            self.display.send_key_event(window, keycode as _, true)?;
+            self.display.send_key_event(window, keycode as _, 0, true)?;
         }
         self.display.flush()?;
         Ok(())
@@ -48,7 +50,8 @@ impl Simulator {
             self.display.xtest_fake_key_event(keycode as _, false, 0)?;
         } else {
             let window = self.display.get_input_focus()?;
-            self.display.send_key_event(window, keycode as _, false)?;
+            self.display
+                .send_key_event(window, keycode as _, 0, false)?;
         }
         self.display.flush()?;
         Ok(())
@@ -63,8 +66,9 @@ impl Simulator {
             self.display.xtest_fake_key_event(keycode as _, false, 0)?;
         } else {
             let window = self.display.get_input_focus()?;
-            self.display.send_key_event(window, keycode as _, true)?;
-            self.display.send_key_event(window, keycode as _, false)?;
+            self.display.send_key_event(window, keycode as _, 0, true)?;
+            self.display
+                .send_key_event(window, keycode as _, 0, false)?;
         }
         self.display.flush()?;
         Ok(())
@@ -112,5 +116,200 @@ impl Simulator {
         }
         self.display.flush()?;
         Ok(())
+    }
+
+    /// Sends a unicode code-point using the "XTEST" extension.
+    fn _send_char_xtest(&self, c: char) -> Result<(), super::Error> {
+        if let Some((keysym, shift)) = utils::char_to_x11(c) {
+            let keycode = self.display.keysym_to_keycode(keysym);
+            let mut shift_keycode = 0;
+
+            if shift {
+                shift_keycode = self.display.keysym_to_keycode(keysym::XK_Shift_L as _);
+                self.display
+                    .xtest_fake_key_event(shift_keycode as _, true, 0)?;
+            }
+
+            self.display.xtest_fake_key_event(keycode as _, true, 0)?;
+            self.display.xtest_fake_key_event(keycode as _, false, 0)?;
+
+            if shift {
+                self.display
+                    .xtest_fake_key_event(shift_keycode as _, false, 0)?;
+            }
+        } else {
+            let control_keycode = self.display.keysym_to_keycode(keysym::XK_Control_L as _);
+            let shift_keycode = self.display.keysym_to_keycode(keysym::XK_Shift_L as _);
+            let u_keycode = self.display.keysym_to_keycode(keysym::XK_U as _);
+            let space_keycode = self.display.keysym_to_keycode(keysym::XK_space as _);
+            let digit_keycodes = [
+                self.display.keysym_to_keycode(keysym::XK_0 as _),
+                self.display.keysym_to_keycode(keysym::XK_1 as _),
+                self.display.keysym_to_keycode(keysym::XK_2 as _),
+                self.display.keysym_to_keycode(keysym::XK_3 as _),
+                self.display.keysym_to_keycode(keysym::XK_4 as _),
+                self.display.keysym_to_keycode(keysym::XK_5 as _),
+                self.display.keysym_to_keycode(keysym::XK_6 as _),
+                self.display.keysym_to_keycode(keysym::XK_7 as _),
+                self.display.keysym_to_keycode(keysym::XK_8 as _),
+                self.display.keysym_to_keycode(keysym::XK_9 as _),
+                self.display.keysym_to_keycode(keysym::XK_A as _),
+                self.display.keysym_to_keycode(keysym::XK_B as _),
+                self.display.keysym_to_keycode(keysym::XK_C as _),
+                self.display.keysym_to_keycode(keysym::XK_D as _),
+                self.display.keysym_to_keycode(keysym::XK_E as _),
+                self.display.keysym_to_keycode(keysym::XK_F as _),
+            ];
+
+            self.display
+                .xtest_fake_key_event(control_keycode as _, true, 0)?;
+            self.display
+                .xtest_fake_key_event(shift_keycode as _, true, 0)?;
+            self.display.xtest_fake_key_event(u_keycode as _, true, 0)?;
+            self.display
+                .xtest_fake_key_event(u_keycode as _, false, 0)?;
+            self.display
+                .xtest_fake_key_event(shift_keycode as _, false, 0)?;
+            self.display
+                .xtest_fake_key_event(control_keycode as _, false, 0)?;
+
+            let mut codepoint = c as u32;
+            if codepoint == 0 {
+                self.display
+                    .xtest_fake_key_event(digit_keycodes[0] as _, true, 0)?;
+                self.display
+                    .xtest_fake_key_event(digit_keycodes[0] as _, false, 0)?;
+            } else {
+                let mut keycode_buffer: [xlib::KeyCode; 8] = [0; 8];
+                let mut cursor = 8;
+
+                while codepoint != 0 {
+                    let idx = (codepoint % 16) as usize;
+
+                    cursor -= 1;
+                    keycode_buffer[cursor] = digit_keycodes[idx];
+
+                    codepoint /= 16;
+                }
+
+                for &keycode in &keycode_buffer[cursor..] {
+                    self.display.xtest_fake_key_event(keycode as _, true, 0)?;
+                    self.display.xtest_fake_key_event(keycode as _, false, 0)?;
+                }
+            }
+
+            self.display
+                .xtest_fake_key_event(space_keycode as _, true, 0)?;
+            self.display
+                .xtest_fake_key_event(space_keycode as _, false, 0)?;
+        }
+
+        Ok(())
+    }
+
+    /// Sends a unicode code-point.
+    fn _send_char(&self, window: xlib::Window, c: char) -> Result<(), super::Error> {
+        if let Some((keysym, shift)) = utils::char_to_x11(c) {
+            let keycode = self.display.keysym_to_keycode(keysym);
+            let state = if shift { xlib::ShiftMask } else { 0 };
+            self.display
+                .send_key_event(window, keycode as _, state, true)?;
+            self.display
+                .send_key_event(window, keycode as _, state, false)?;
+        } else {
+            let u_keycode = self.display.keysym_to_keycode(keysym::XK_U as _);
+            let space_keycode = self.display.keysym_to_keycode(keysym::XK_space as _);
+            let digit_keycodes = [
+                self.display.keysym_to_keycode(keysym::XK_0 as _),
+                self.display.keysym_to_keycode(keysym::XK_1 as _),
+                self.display.keysym_to_keycode(keysym::XK_2 as _),
+                self.display.keysym_to_keycode(keysym::XK_3 as _),
+                self.display.keysym_to_keycode(keysym::XK_4 as _),
+                self.display.keysym_to_keycode(keysym::XK_5 as _),
+                self.display.keysym_to_keycode(keysym::XK_6 as _),
+                self.display.keysym_to_keycode(keysym::XK_7 as _),
+                self.display.keysym_to_keycode(keysym::XK_8 as _),
+                self.display.keysym_to_keycode(keysym::XK_9 as _),
+                self.display.keysym_to_keycode(keysym::XK_A as _),
+                self.display.keysym_to_keycode(keysym::XK_B as _),
+                self.display.keysym_to_keycode(keysym::XK_C as _),
+                self.display.keysym_to_keycode(keysym::XK_D as _),
+                self.display.keysym_to_keycode(keysym::XK_E as _),
+                self.display.keysym_to_keycode(keysym::XK_F as _),
+            ];
+
+            self.display.send_key_event(
+                window,
+                u_keycode as _,
+                xlib::ShiftMask | xlib::ControlMask,
+                true,
+            )?;
+            self.display
+                .send_key_event(window, u_keycode as _, 0, false)?;
+
+            let mut codepoint = c as u32;
+            if codepoint == 0 {
+                self.display
+                    .send_key_event(window, digit_keycodes[0] as _, 0, true)?;
+                self.display
+                    .send_key_event(window, digit_keycodes[0] as _, 0, false)?;
+            } else {
+                let mut keycode_buffer: [xlib::KeyCode; 8] = [0; 8];
+                let mut cursor = 8;
+
+                while codepoint != 0 {
+                    let idx = (codepoint % 16) as usize;
+
+                    cursor -= 1;
+                    keycode_buffer[cursor] = digit_keycodes[idx];
+
+                    codepoint /= 16;
+                }
+
+                for &keycode in &keycode_buffer[cursor..] {
+                    self.display.send_key_event(window, keycode as _, 0, true)?;
+                    self.display
+                        .send_key_event(window, keycode as _, 0, false)?;
+                }
+            }
+
+            self.display
+                .send_key_event(window, space_keycode as _, 0, true)?;
+            self.display
+                .send_key_event(window, space_keycode as _, 0, false)?;
+        }
+
+        Ok(())
+    }
+
+    /// Sends a specific unicode code-point.
+    pub fn send_char(&self, c: char) -> Result<(), super::Error> {
+        if self.supports_xtest {
+            self._send_char_xtest(c)?;
+        } else {
+            let window = self.display.get_input_focus()?;
+            self._send_char(window, c)?;
+        }
+
+        self.display.flush()?;
+        Ok(())
+    }
+
+    /// Sends a collection of characters.
+    pub fn send_chars(&self, mut it: impl Iterator<Item = char>) -> Result<(), super::Error> {
+        if self.supports_xtest {
+            it.try_for_each(|c| self._send_char_xtest(c))?;
+        } else {
+            let window = self.display.get_input_focus()?;
+            it.try_for_each(move |c| self._send_char(window, c))?;
+        }
+
+        self.display.flush()?;
+        Ok(())
+    }
+
+    /// Sends a string.
+    pub fn send_str(&self, s: &str) -> Result<(), super::Error> {
+        self.send_chars(s.chars())
     }
 }

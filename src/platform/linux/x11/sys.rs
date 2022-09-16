@@ -110,6 +110,7 @@ impl OpenDisplay {
         &self,
         window: xlib::Window,
         keycode: c_uint,
+        state: c_uint,
         press: bool,
     ) -> Result<(), super::Error> {
         let (type_, mask) = match press {
@@ -125,7 +126,7 @@ impl OpenDisplay {
                 same_screen: xlib::True,
                 send_event: xlib::True,
                 serial: 0,
-                state: 0,
+                state,
                 subwindow: 0,
                 time: xlib::CurrentTime,
                 type_,
