@@ -30,7 +30,10 @@ impl Simulator {
 
     /// Sends a fake key press event to the top-level window.
     pub fn press_key(&self, key: Key) -> Result<(), super::Error> {
-        let keycode = self.display.keysym_to_keycode(utils::key_to_x11(key))?;
+        let keycode = self
+            .display
+            .keysym_to_keycode(utils::key_to_x11(key))
+            .ok_or(super::Error::UnsupportedKey(key))?;
 
         if self.supports_xtest {
             self.display.xtest_fake_key_event(keycode as _, true, 0)?;
@@ -44,7 +47,10 @@ impl Simulator {
 
     /// Sends a fake key release event to the top-level window.
     pub fn release_key(&self, key: Key) -> Result<(), super::Error> {
-        let keycode = self.display.keysym_to_keycode(utils::key_to_x11(key))?;
+        let keycode = self
+            .display
+            .keysym_to_keycode(utils::key_to_x11(key))
+            .ok_or(super::Error::UnsupportedKey(key))?;
 
         if self.supports_xtest {
             self.display.xtest_fake_key_event(keycode as _, false, 0)?;
@@ -59,7 +65,10 @@ impl Simulator {
 
     /// Sends a fake keystroke event to the top-level window.
     pub fn send_key(&self, key: Key) -> Result<(), super::Error> {
-        let keycode = self.display.keysym_to_keycode(utils::key_to_x11(key))?;
+        let keycode = self
+            .display
+            .keysym_to_keycode(utils::key_to_x11(key))
+            .ok_or(super::Error::UnsupportedKey(key))?;
 
         if self.supports_xtest {
             self.display.xtest_fake_key_event(keycode as _, true, 0)?;
@@ -120,13 +129,19 @@ impl Simulator {
 
     /// Sends a unicode code-point using the "XTEST" extension.
     fn _send_char_xtest(&self, c: char) -> Result<(), super::Error> {
-        let (keysym, shift) = utils::char_to_x11(c).ok_or(super::Error::UnsupportedKey)?;
+        let (keysym, shift) = utils::char_to_x11(c).ok_or(super::Error::UnsupportedChar(c))?;
 
-        let keycode = self.display.keysym_to_keycode(keysym)?;
+        let keycode = self
+            .display
+            .keysym_to_keycode(keysym)
+            .ok_or(super::Error::UnsupportedChar(c))?;
         let mut shift_keycode = 0;
 
         if shift {
-            shift_keycode = self.display.keysym_to_keycode(keysym::XK_Shift_L as _)?;
+            shift_keycode = self
+                .display
+                .keysym_to_keycode(keysym::XK_Shift_L as _)
+                .ok_or(super::Error::UnsupportedChar(c))?;
             self.display
                 .xtest_fake_key_event(shift_keycode as _, true, 0)?;
         }
@@ -144,9 +159,12 @@ impl Simulator {
 
     /// Sends a unicode code-point.
     fn _send_char(&self, window: xlib::Window, c: char) -> Result<(), super::Error> {
-        let (keysym, shift) = utils::char_to_x11(c).ok_or(super::Error::UnsupportedKey)?;
+        let (keysym, shift) = utils::char_to_x11(c).ok_or(super::Error::UnsupportedChar(c))?;
 
-        let keycode = self.display.keysym_to_keycode(keysym)?;
+        let keycode = self
+            .display
+            .keysym_to_keycode(keysym)
+            .ok_or(super::Error::UnsupportedChar(c))?;
         let state = if shift { xlib::ShiftMask } else { 0 };
         self.display
             .send_key_event(window, keycode as _, state, true)?;
