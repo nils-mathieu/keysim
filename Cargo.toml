@@ -12,10 +12,9 @@ documentation = "https://docs.rs/keysim"
 [features]
 default = ["x11"]
 
-[dependencies.x11]
+[target.'cfg(target_os = "linux")'.dependencies.x11]
 # Only on Linux:
-#
-# Enables support for the X11 window manager. 
+#  Enables support for the X11 window manager. 
 version = "2"
 default-features = false
 optional = true
