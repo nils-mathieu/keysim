@@ -14,9 +14,6 @@ pub struct Simulator {
     supports_xtest: bool,
 }
 
-// TODO:
-//  Figure out wether the `Simulator` type should be thread safe or not.
-
 impl Simulator {
     /// Creates a new [`Simulator`] instance.
     pub fn new() -> Result<Self, super::Error> {

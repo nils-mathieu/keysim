@@ -1,4 +1,4 @@
-//! Wraps the calls to the X11 API into safe function calls associated to the [`Display`] type.
+//! Wraps the calls to the X11 API into safe function calls associated to the [`OpenDisplay`] type.
 
 use std::os::raw::{c_uint, c_ulong};
 
@@ -8,6 +8,9 @@ use x11::{xlib, xtest};
 pub struct OpenDisplay {
     raw: *mut x11::xlib::Display,
 }
+
+// TODO:
+//  Figure out wether the `Simulator` type should be thread safe or not.
 
 impl OpenDisplay {
     /// Opens a connection with the X11 server.
@@ -95,7 +98,7 @@ impl OpenDisplay {
         }
     }
 
-    /// Sends a [`XKeyEvent`].
+    /// Sends a [`xlib::XKeyEvent`].
     ///
     /// This function assumes that `window` is a valid window ID, meaning that it returns
     /// [`UnexpectedError`] if the operation fails.
@@ -143,7 +146,7 @@ impl OpenDisplay {
         }
     }
 
-    /// Sends a [`XButtonEvent`].
+    /// Sends a [`xlib::XButtonEvent`].
     ///
     /// This function assumes that `window` is a valid window ID, meaning that it returns
     /// [`UnexpectedError`] if the operation fails.
