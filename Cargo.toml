@@ -19,4 +19,4 @@ default = ["x11"]
 version = "2"
 default-features = false
 optional = true
-features = ["xtest", "xlib"]
+features = ["xlib"]

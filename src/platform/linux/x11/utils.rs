@@ -1,4 +1,4 @@
-//! This module provides some utility functions.
+//! This module provides utility functions to work with the X11 API.
 
 use std::os::raw::c_uint;
 
@@ -7,7 +7,7 @@ use x11::xlib::KeySym;
 use crate::{Button, Key};
 
 /// Converts a [`Key`] into a [`KeySym`].
-pub fn key_to_keysym(key: Key) -> KeySym {
+pub fn key_to_x11(key: Key) -> KeySym {
     use x11::keysym;
 
     match key {
