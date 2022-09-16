@@ -1,8 +1,8 @@
 //! Wraps the calls to the X11 API into safe function calls associated to the [`Display`] type.
 
-use std::os::raw::c_uint;
+use std::os::raw::{c_uint, c_ulong};
 
-use x11::xlib;
+use x11::{xlib, xtest};
 
 /// An open connection with the X server.
 pub struct OpenDisplay {
@@ -30,6 +30,26 @@ impl OpenDisplay {
     #[inline]
     pub fn raw(&self) -> *mut x11::xlib::Display {
         self.raw
+    }
+
+    /// Determines whether the current X11 display supports the "XTEST" extension.
+    pub fn xtest_query_extension(&self) -> bool {
+        let mut event_base = 0;
+        let mut error_base = 0;
+        let mut major_version = 0;
+        let mut minor_version = 0;
+
+        // Safety:
+        //  The `raw` field of `Display` is known to be valid, by invariant.
+        unsafe {
+            xtest::XTestQueryExtension(
+                self.raw,
+                &mut event_base,
+                &mut error_base,
+                &mut major_version,
+                &mut minor_version,
+            ) != xlib::False
+        }
     }
 
     /// Wraps the [`xlib::XGetInputFocus`] function.
@@ -83,7 +103,6 @@ impl OpenDisplay {
     /// This function wraps the [`xlib::XSendEvent`] function.
     ///
     /// [`UnexpectedError`]: super::Error::UnexpectedError
-    #[inline]
     pub fn send_key_event(
         &self,
         window: xlib::Window,
@@ -132,7 +151,6 @@ impl OpenDisplay {
     /// This function wraps the [`xlib::XSendEvent`] function.
     ///
     /// [`UnexpectedError`]: super::Error::UnexpectedError
-    #[inline]
     pub fn send_button_event(
         &self,
         window: xlib::Window,
@@ -167,6 +185,40 @@ impl OpenDisplay {
         // Safety:
         //  The `raw` field of `Display` is known to be valid, by invariant.
         let status = unsafe { xlib::XSendEvent(self.raw, window, xlib::True, mask, &mut event) };
+
+        if status == xlib::False {
+            Err(super::Error::UnexpectedError)
+        } else {
+            Ok(())
+        }
+    }
+
+    /// Wraps the [`xtest::XTestFakeKeyEvent`] function.
+    #[inline]
+    pub fn xtest_fake_key_event(
+        &self,
+        keycode: c_uint,
+        press: bool,
+        delay: c_ulong,
+    ) -> Result<(), super::Error> {
+        let status = unsafe { xtest::XTestFakeKeyEvent(self.raw, keycode, press as _, delay) };
+
+        if status == xlib::False {
+            Err(super::Error::UnexpectedError)
+        } else {
+            Ok(())
+        }
+    }
+
+    /// Wraps the [`xtest::XTestFakeButtonEvent`] function.
+    #[inline]
+    pub fn xtest_fake_button_event(
+        &self,
+        button: c_uint,
+        press: bool,
+        delay: c_ulong,
+    ) -> Result<(), super::Error> {
+        let status = unsafe { xtest::XTestFakeButtonEvent(self.raw, button, press as _, delay) };
 
         if status == xlib::False {
             Err(super::Error::UnexpectedError)
