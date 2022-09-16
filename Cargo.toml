@@ -19,3 +19,8 @@ version = "2"
 default-features = false
 optional = true
 features = ["xlib", "xtest"]
+
+[target.'cfg(target_os = "windows")'.dependencies.winapi]
+version = "0.3"
+default-features = false
+features = ["winuser", "minwindef"]
